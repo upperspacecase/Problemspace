@@ -17,7 +17,7 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase-client";
+import { getFirebaseAuth, isFirebaseConfigured } from "@/lib/firebase-client";
 
 interface AppUser {
   _id: string;
@@ -30,6 +30,7 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   user: AppUser | null;
   loading: boolean;
+  configured: boolean;
   getToken: () => Promise<string | null>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   signupWithEmail: (
@@ -47,30 +48,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const configured = isFirebaseConfigured();
 
   async function syncUser(fbUser: FirebaseUser) {
-    const token = await fbUser.getIdToken();
-    const res = await fetch("/api/auth/sync", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        firebaseUid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName || "Anonymous",
-      }),
-    });
+    try {
+      const token = await fbUser.getIdToken();
+      const res = await fetch("/api/auth/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          firebaseUid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName || "Anonymous",
+        }),
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      setUser(data.user);
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      }
+    } catch (err) {
+      console.error("Failed to sync user:", err);
     }
   }
 
   useEffect(() => {
+    if (!configured) {
+      setLoading(false);
+      return;
+    }
+
     const auth = getFirebaseAuth();
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser);
       if (fbUser) {
@@ -82,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [configured]);
 
   async function getToken(): Promise<string | null> {
     if (!firebaseUser) return null;
@@ -91,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loginWithEmail(email: string, password: string) {
     const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase is not configured");
     await signInWithEmailAndPassword(auth, email, password);
   }
 
@@ -100,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     displayName: string
   ) {
     const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase is not configured");
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName });
     await syncUser(cred.user);
@@ -107,12 +125,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loginWithGoogle() {
     const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase is not configured");
     const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
   }
 
   async function logout() {
     const auth = getFirebaseAuth();
+    if (!auth) return;
     await signOut(auth);
     setUser(null);
   }
@@ -123,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         firebaseUser,
         user,
         loading,
+        configured,
         getToken,
         loginWithEmail,
         signupWithEmail,

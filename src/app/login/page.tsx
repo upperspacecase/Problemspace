@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginWithEmail, loginWithGoogle, user } = useAuth();
+  const { loginWithEmail, loginWithGoogle, user, configured } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,6 +17,19 @@ export default function LoginPage() {
   if (user) {
     router.push("/");
     return null;
+  }
+
+  if (!configured) {
+    return (
+      <div className="max-w-md mx-auto mt-12 text-center">
+        <h1 className="text-2xl font-serif text-earth-dark mb-4">Log in</h1>
+        <div className="bg-card-bg border border-border-warm rounded-2xl p-6">
+          <p className="text-sm text-earth-mid">
+            Authentication is not configured yet. Set the <code className="bg-border-warm px-1 rounded">NEXT_PUBLIC_FIREBASE_*</code> environment variables and redeploy.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   async function handleEmailLogin(e: React.FormEvent) {

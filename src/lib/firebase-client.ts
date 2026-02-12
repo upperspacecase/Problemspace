@@ -10,10 +10,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
 
-export function getFirebaseApp(): FirebaseApp {
+export function isFirebaseConfigured(): boolean {
+  return !!(firebaseConfig.apiKey && firebaseConfig.projectId);
+}
+
+export function getFirebaseApp(): FirebaseApp | null {
+  if (!isFirebaseConfigured()) return null;
   if (app) return app;
   if (getApps().length > 0) {
     app = getApps()[0];
@@ -23,8 +28,10 @@ export function getFirebaseApp(): FirebaseApp {
   return app;
 }
 
-export function getFirebaseAuth(): Auth {
+export function getFirebaseAuth(): Auth | null {
   if (auth) return auth;
-  auth = getAuth(getFirebaseApp());
+  const firebaseApp = getFirebaseApp();
+  if (!firebaseApp) return null;
+  auth = getAuth(firebaseApp);
   return auth;
 }
