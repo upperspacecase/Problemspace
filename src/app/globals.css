@@ -2,39 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap");
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: "DM Sans", sans-serif;
-  background-color: #faf8f4;
-  color: #2d2d26;
+  font-family: "DM Sans", system-ui, sans-serif;
+  background-color: #FAFAF8;
+  color: #1A1A18;
+  font-size: 15px;
+  line-height: 1.6;
 }
 
-h1,
-h2,
-h3,
-h4 {
+h1, h2, h3 {
   font-family: "DM Serif Display", serif;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+@layer components {
+  .input-base {
+    @apply w-full bg-bg border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary
+    placeholder:text-text-tertiary
+    focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent
+    transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-accent text-white px-5 py-2.5 rounded-lg text-sm font-medium
+    hover:bg-accent-hover active:scale-[0.98]
+    disabled:opacity-50 disabled:cursor-not-allowed
+    transition-all;
+  }
+
+  .btn-secondary {
+    @apply bg-bg border border-border px-4 py-2 rounded-lg text-sm font-medium text-text-secondary
+    hover:bg-bg-hover hover:text-text-primary hover:border-border-strong
+    active:scale-[0.98]
+    transition-all;
+  }
+
+  .card {
+    @apply bg-white border border-border rounded-xl;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: #f4f1eb;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #e5e0d5;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #8b8670;
+.font-num {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-variant-numeric: tabular-nums;
 }

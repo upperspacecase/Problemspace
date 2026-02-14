@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { STAGE_MAP } from "@/lib/constants";
 
 interface Solution {
   _id: string;
@@ -21,18 +23,11 @@ interface Props {
   initialUpvoted?: boolean;
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  idea: "Idea",
-  prototype: "Prototype",
-  live: "Live",
-  mature: "Mature",
-};
-
 const STAGE_COLORS: Record<string, string> = {
-  idea: "bg-blue-100 text-blue-700",
-  prototype: "bg-yellow-100 text-yellow-700",
-  live: "bg-green-100 text-green-700",
-  mature: "bg-purple-100 text-purple-700",
+  idea: "text-stage-idea bg-gray-100",
+  prototype: "text-stage-prototype bg-amber-50",
+  live: "text-stage-live bg-emerald-50",
+  mature: "text-stage-mature bg-purple-50",
 };
 
 export default function SolutionCard({
@@ -41,6 +36,7 @@ export default function SolutionCard({
   initialUpvoted = false,
 }: Props) {
   const { user, getToken } = useAuth();
+  const router = useRouter();
   const [upvoteCount, setUpvoteCount] = useState(solution.upvoteCount);
   const [hasUpvoted, setHasUpvoted] = useState(initialUpvoted);
   const [isSolved, setIsSolved] = useState(solution.isMarkedSolved);
@@ -49,118 +45,86 @@ export default function SolutionCard({
   const isOwner = user?._id === problemUserId;
 
   async function handleUpvote() {
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
+    if (!user) { router.push("/login"); return; }
+    if (loading) return;
     setLoading(true);
+    const was = hasUpvoted;
+    setHasUpvoted(!was);
+    setUpvoteCount((c) => was ? c - 1 : c + 1);
     try {
       const token = await getToken();
-      const res = await apiFetch(`/api/solutions/${solution._id}/upvote`, {
-        method: "POST",
-        token,
-      });
-      if (res.action === "added") {
-        setUpvoteCount((c) => c + 1);
-        setHasUpvoted(true);
-      } else {
-        setUpvoteCount((c) => c - 1);
-        setHasUpvoted(false);
-      }
-    } catch (err) {
-      console.error("Solution upvote failed:", err);
+      await apiFetch(`/api/solutions/${solution._id}/upvote`, { method: "POST", token });
+    } catch {
+      setHasUpvoted(was);
+      setUpvoteCount((c) => was ? c + 1 : c - 1);
     }
     setLoading(false);
   }
 
   async function handleMarkSolved() {
-    if (!user || !isOwner) return;
+    if (!user || !isOwner || loading) return;
     setLoading(true);
     try {
       const token = await getToken();
-      const res = await apiFetch(`/api/solutions/${solution._id}/mark-solved`, {
-        method: "POST",
-        token,
-      });
+      const res = await apiFetch(`/api/solutions/${solution._id}/mark-solved`, { method: "POST", token });
       setIsSolved(res.action === "marked_solved");
-    } catch (err) {
-      console.error("Mark solved failed:", err);
-    }
+    } catch { /* noop */ }
     setLoading(false);
   }
 
   return (
-    <div className="bg-white border border-border-warm rounded-2xl p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h4 className="font-medium text-earth-dark">{solution.name}</h4>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full ${
-                STAGE_COLORS[solution.stage] || ""
-              }`}
-            >
-              {STAGE_LABELS[solution.stage] || solution.stage}
+    <div className="card p-4 flex items-start gap-3">
+      {/* Upvote */}
+      <button
+        onClick={handleUpvote}
+        className={`flex flex-col items-center gap-0.5 pt-0.5 flex-shrink-0 rounded-lg px-2 py-1.5 transition-all active:scale-[0.97] ${
+          hasUpvoted
+            ? "bg-signal-up-bg text-signal-up"
+            : "text-text-tertiary hover:bg-bg-raised"
+        }`}
+      >
+        <svg className="w-3.5 h-3.5" fill={hasUpvoted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+        <span className="font-num text-xs">{upvoteCount}</span>
+      </button>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-medium text-sm text-text-primary">{solution.name}</span>
+          <span className={`text-[11px] px-1.5 py-0.5 rounded font-medium ${STAGE_COLORS[solution.stage] || ""}`}>
+            {STAGE_MAP[solution.stage] || solution.stage}
+          </span>
+          {isSolved && (
+            <span className="text-[11px] px-1.5 py-0.5 rounded font-medium text-accent bg-accent-subtle">
+              Solved it
             </span>
-            {isSolved && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-green-primary/10 text-green-primary font-medium">
-                Solved it for me
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-earth-mid mb-2">{solution.description}</p>
-          {solution.howItAddresses && (
-            <p className="text-sm text-earth-muted italic mb-2">
-              {solution.howItAddresses}
-            </p>
           )}
+        </div>
+        <p className="text-sm text-text-secondary mt-0.5 line-clamp-2">{solution.description}</p>
+        {solution.howItAddresses && (
+          <p className="text-xs text-text-tertiary italic mt-1">{solution.howItAddresses}</p>
+        )}
+        <div className="flex items-center gap-3 mt-2">
           <a
             href={solution.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-green-primary hover:underline"
+            className="text-xs text-accent hover:underline"
           >
-            View solution &rarr;
+            {solution.link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]} &rarr;
           </a>
-        </div>
-
-        <div className="flex flex-col items-center gap-2 flex-shrink-0">
-          <button
-            onClick={handleUpvote}
-            disabled={loading}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors ${
-              hasUpvoted
-                ? "bg-green-primary text-white"
-                : "bg-card-bg border border-border-warm text-earth-mid hover:border-green-primary"
-            }`}
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill={hasUpvoted ? "currentColor" : "none"}
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-            {upvoteCount}
-          </button>
-
           {isOwner && (
             <button
               onClick={handleMarkSolved}
-              disabled={loading}
-              className={`text-xs px-3 py-1 rounded-full transition-colors ${
+              className={`text-xs transition-colors ${
                 isSolved
-                  ? "bg-green-primary text-white"
-                  : "border border-green-primary text-green-primary hover:bg-green-primary hover:text-white"
+                  ? "text-accent font-medium"
+                  : "text-text-tertiary hover:text-accent"
               }`}
             >
-              {isSolved ? "Solved" : "This solved it"}
+              {isSolved ? "Marked solved" : "This solved it for me"}
             </button>
           )}
         </div>

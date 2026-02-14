@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { PRICE_RANGES } from "@/lib/constants";
 
 interface Props {
   problemId: string;
@@ -12,8 +14,6 @@ interface Props {
   initialPaid?: boolean;
 }
 
-const PRICE_RANGES = ["<$10/mo", "$10-50/mo", "$50-200/mo", "$200+/mo"];
-
 export default function DemandSignals({
   problemId,
   upvoteCount: initialUpvotes,
@@ -22,146 +22,134 @@ export default function DemandSignals({
   initialPaid = false,
 }: Props) {
   const { user, getToken } = useAuth();
+  const router = useRouter();
   const [upvoteCount, setUpvoteCount] = useState(initialUpvotes);
   const [paySignalCount, setPaySignalCount] = useState(initialPaySignals);
   const [hasUpvoted, setHasUpvoted] = useState(initialUpvoted);
   const [hasPaid, setHasPaid] = useState(initialPaid);
   const [showPriceRange, setShowPriceRange] = useState(false);
   const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowPriceRange(false);
+      }
+    }
+    if (showPriceRange) {
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }
+  }, [showPriceRange]);
 
   async function handleUpvote() {
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
+    if (!user) { router.push("/login"); return; }
+    if (loading) return;
     setLoading(true);
+    // Optimistic
+    setHasUpvoted((v) => !v);
+    setUpvoteCount((c) => hasUpvoted ? c - 1 : c + 1);
     try {
       const token = await getToken();
-      const res = await apiFetch(`/api/problems/${problemId}/upvote`, {
-        method: "POST",
-        token,
-      });
-      if (res.action === "added") {
-        setUpvoteCount((c) => c + 1);
-        setHasUpvoted(true);
-      } else {
-        setUpvoteCount((c) => c - 1);
-        setHasUpvoted(false);
-      }
-    } catch (err) {
-      console.error("Upvote failed:", err);
+      await apiFetch(`/api/problems/${problemId}/upvote`, { method: "POST", token });
+    } catch {
+      // Revert
+      setHasUpvoted((v) => !v);
+      setUpvoteCount((c) => hasUpvoted ? c + 1 : c - 1);
     }
     setLoading(false);
   }
 
   async function handlePaySignal(priceRange?: string) {
-    if (!user) {
-      window.location.href = "/login";
-      return;
-    }
+    if (!user) { router.push("/login"); return; }
+    if (loading) return;
     setLoading(true);
     setShowPriceRange(false);
+    // Optimistic
+    const wasPaid = hasPaid;
+    setHasPaid((v) => !v);
+    setPaySignalCount((c) => wasPaid ? c - 1 : c + 1);
     try {
       const token = await getToken();
       const body: Record<string, string> = {};
       if (priceRange) body.priceRange = priceRange;
-      const res = await apiFetch(`/api/problems/${problemId}/pay-signal`, {
+      await apiFetch(`/api/problems/${problemId}/pay-signal`, {
         method: "POST",
         token,
         body: JSON.stringify(body),
       });
-      if (res.action === "added") {
-        setPaySignalCount((c) => c + 1);
-        setHasPaid(true);
-      } else {
-        setPaySignalCount((c) => c - 1);
-        setHasPaid(false);
-      }
-    } catch (err) {
-      console.error("Pay signal failed:", err);
+    } catch {
+      setHasPaid((v) => !v);
+      setPaySignalCount((c) => wasPaid ? c + 1 : c - 1);
     }
     setLoading(false);
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
+      {/* Upvote */}
       <button
         onClick={handleUpvote}
-        disabled={loading}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97] ${
           hasUpvoted
-            ? "bg-green-primary text-white"
-            : "bg-card-bg border border-border-warm text-earth-mid hover:border-green-primary hover:text-green-primary"
+            ? "bg-signal-up-bg text-signal-up border border-signal-up/20"
+            : "bg-bg-raised text-text-secondary hover:bg-bg-hover border border-transparent"
         }`}
       >
-        <svg
-          className="w-4 h-4"
-          fill={hasUpvoted ? "currentColor" : "none"}
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 15l7-7 7 7"
-          />
+        <svg className="w-4 h-4" fill={hasUpvoted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
         </svg>
-        {upvoteCount}
+        <span className="font-num">{upvoteCount}</span>
       </button>
 
-      <div className="relative">
+      {/* Pay signal — the important one */}
+      <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => {
+            if (!user) { router.push("/login"); return; }
             if (hasPaid) {
               handlePaySignal();
             } else {
               setShowPriceRange(!showPriceRange);
             }
           }}
-          disabled={loading}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97] ${
             hasPaid
-              ? "bg-green-primary text-white"
-              : "bg-card-bg border border-border-warm text-earth-mid hover:border-green-primary hover:text-green-primary"
+              ? "bg-signal-pay-bg text-signal-pay border border-signal-pay/20"
+              : "bg-bg-raised text-text-secondary hover:bg-bg-hover border border-transparent"
           }`}
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          I&apos;d pay · {paySignalCount}
+          <span className="text-xs">$</span>
+          <span>I&apos;d pay</span>
+          {paySignalCount > 0 && (
+            <span className="font-num text-xs opacity-70">{paySignalCount}</span>
+          )}
         </button>
 
         {showPriceRange && (
-          <div className="absolute top-full left-0 mt-2 bg-white border border-border-warm rounded-2xl shadow-lg p-3 z-10 min-w-[180px]">
-            <p className="text-xs text-earth-muted mb-2">
-              Price range (optional):
+          <div className="absolute top-full left-0 mt-1.5 bg-white border border-border rounded-xl shadow-lg p-2 z-20 min-w-[200px]">
+            <p className="text-[11px] text-text-tertiary px-2 pt-1 pb-2">
+              What would you pay?
             </p>
             {PRICE_RANGES.map((range) => (
               <button
                 key={range}
                 onClick={() => handlePaySignal(range)}
-                className="block w-full text-left px-3 py-1.5 text-sm text-earth-mid hover:bg-card-bg rounded-lg transition-colors"
+                className="block w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-raised rounded-lg transition-colors"
               >
                 {range}
               </button>
             ))}
-            <button
-              onClick={() => handlePaySignal()}
-              className="block w-full text-left px-3 py-1.5 text-sm text-earth-muted hover:bg-card-bg rounded-lg transition-colors mt-1 border-t border-border-warm pt-2"
-            >
-              Skip — just signal
-            </button>
+            <div className="border-t border-border mt-1 pt-1">
+              <button
+                onClick={() => handlePaySignal()}
+                className="block w-full text-left px-3 py-2 text-xs text-text-tertiary hover:bg-bg-raised rounded-lg transition-colors"
+              >
+                Just signal — skip price
+              </button>
+            </div>
           </div>
         )}
       </div>

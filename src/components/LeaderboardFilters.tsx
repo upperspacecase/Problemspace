@@ -1,66 +1,56 @@
 "use client";
 
+import { CATEGORIES } from "@/lib/constants";
+
 interface FiltersProps {
   sort: string;
   category: string;
-  hasSolutions: string;
   unsolved: string;
   onSortChange: (value: string) => void;
   onCategoryChange: (value: string) => void;
-  onHasSolutionsChange: (value: string) => void;
   onUnsolvedChange: (value: string) => void;
 }
 
-const CATEGORIES = [
-  { value: "", label: "All Categories" },
-  { value: "health", label: "Health" },
-  { value: "finance", label: "Finance" },
-  { value: "education", label: "Education" },
-  { value: "productivity", label: "Productivity" },
-  { value: "environment", label: "Environment" },
-  { value: "social", label: "Social" },
-  { value: "housing", label: "Housing" },
-  { value: "transport", label: "Transport" },
-  { value: "food", label: "Food" },
-  { value: "work", label: "Work" },
-  { value: "other", label: "Other" },
-];
-
 const SORT_OPTIONS = [
-  { value: "score", label: "Highest Demand" },
-  { value: "trending", label: "Trending" },
-  { value: "newest", label: "Newest" },
+  { value: "score", label: "Top" },
+  { value: "newest", label: "New" },
+  { value: "trending", label: "Rising" },
 ];
 
 export default function LeaderboardFilters({
   sort,
   category,
-  hasSolutions,
   unsolved,
   onSortChange,
   onCategoryChange,
-  onHasSolutionsChange,
   onUnsolvedChange,
 }: FiltersProps) {
   return (
-    <div className="flex flex-wrap items-center gap-3 mb-6">
-      <select
-        value={sort}
-        onChange={(e) => onSortChange(e.target.value)}
-        className="bg-card-bg border border-border-warm rounded-full px-4 py-2 text-sm text-earth-mid focus:outline-none focus:ring-2 focus:ring-green-primary/30"
-      >
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* Sort tabs */}
+      <div className="flex items-center bg-bg-raised rounded-lg p-0.5">
         {SORT_OPTIONS.map((opt) => (
-          <option key={opt.value} value={opt.value}>
+          <button
+            key={opt.value}
+            onClick={() => onSortChange(opt.value)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              sort === opt.value
+                ? "bg-white text-text-primary shadow-sm"
+                : "text-text-tertiary hover:text-text-secondary"
+            }`}
+          >
             {opt.label}
-          </option>
+          </button>
         ))}
-      </select>
+      </div>
 
+      {/* Category */}
       <select
         value={category}
         onChange={(e) => onCategoryChange(e.target.value)}
-        className="bg-card-bg border border-border-warm rounded-full px-4 py-2 text-sm text-earth-mid focus:outline-none focus:ring-2 focus:ring-green-primary/30"
+        className="bg-bg-raised border-0 rounded-lg px-3 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/20 cursor-pointer"
       >
+        <option value="">All categories</option>
         {CATEGORIES.map((cat) => (
           <option key={cat.value} value={cat.value}>
             {cat.label}
@@ -68,27 +58,17 @@ export default function LeaderboardFilters({
         ))}
       </select>
 
-      <label className="flex items-center gap-2 text-sm text-earth-mid cursor-pointer">
-        <input
-          type="checkbox"
-          checked={hasSolutions === "true"}
-          onChange={(e) =>
-            onHasSolutionsChange(e.target.checked ? "true" : "")
-          }
-          className="rounded border-border-warm text-green-primary focus:ring-green-primary/30"
-        />
-        Has solutions
-      </label>
-
-      <label className="flex items-center gap-2 text-sm text-earth-mid cursor-pointer">
-        <input
-          type="checkbox"
-          checked={unsolved === "true"}
-          onChange={(e) => onUnsolvedChange(e.target.checked ? "true" : "")}
-          className="rounded border-border-warm text-green-primary focus:ring-green-primary/30"
-        />
-        Unsolved only
-      </label>
+      {/* Open only toggle */}
+      <button
+        onClick={() => onUnsolvedChange(unsolved === "true" ? "" : "true")}
+        className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+          unsolved === "true"
+            ? "bg-accent text-white"
+            : "bg-bg-raised text-text-tertiary hover:text-text-secondary"
+        }`}
+      >
+        Open only
+      </button>
     </div>
   );
 }

@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
 import { authenticateRequest, isAuthError } from "@/lib/auth-middleware";
-import { ObjectId } from "mongodb";
-
-const VALID_CATEGORIES = [
-  "health", "finance", "education", "productivity", "environment",
-  "social", "housing", "transport", "food", "work", "other",
-];
+import { VALID_CATEGORIES } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
   const authResult = await authenticateRequest(request);

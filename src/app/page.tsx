@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import ProblemCard from "@/components/ProblemCard";
 import LeaderboardFilters from "@/components/LeaderboardFilters";
 
@@ -30,10 +31,8 @@ export default function Home() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Filter state
   const [sort, setSort] = useState("score");
   const [category, setCategory] = useState("");
-  const [hasSolutions, setHasSolutions] = useState("");
   const [unsolved, setUnsolved] = useState("");
   const [page, setPage] = useState(1);
 
@@ -42,9 +41,8 @@ export default function Home() {
     const params = new URLSearchParams();
     params.set("sort", sort);
     params.set("page", page.toString());
-    params.set("limit", "20");
+    params.set("limit", "30");
     if (category) params.set("category", category);
-    if (hasSolutions) params.set("hasSolutions", hasSolutions);
     if (unsolved) params.set("unsolved", unsolved);
 
     try {
@@ -56,93 +54,96 @@ export default function Home() {
       console.error("Failed to fetch problems:", err);
     }
     setLoading(false);
-  }, [sort, category, hasSolutions, unsolved, page]);
+  }, [sort, category, unsolved, page]);
 
   useEffect(() => {
     fetchProblems();
   }, [fetchProblems]);
 
-  // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [sort, category, hasSolutions, unsolved]);
+  }, [sort, category, unsolved]);
+
+  const startRank = ((pagination?.page || 1) - 1) * (pagination?.limit || 30);
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-serif text-earth-dark mb-2">
-          Problem Board
-        </h1>
-        <p className="text-earth-mid">
-          Aim builders at the problems that matter. Ranked by demand signal.
-        </p>
+      {/* Header — no tagline, just the filters */}
+      <div className="flex items-end justify-between gap-4 mb-5">
+        <div>
+          <h1 className="text-2xl font-serif text-text-primary">Problems</h1>
+          {pagination && (
+            <p className="text-xs text-text-tertiary font-mono mt-1">
+              {pagination.total} problems
+            </p>
+          )}
+        </div>
+        <LeaderboardFilters
+          sort={sort}
+          category={category}
+          unsolved={unsolved}
+          onSortChange={setSort}
+          onCategoryChange={setCategory}
+          onUnsolvedChange={setUnsolved}
+        />
       </div>
 
-      <LeaderboardFilters
-        sort={sort}
-        category={category}
-        hasSolutions={hasSolutions}
-        unsolved={unsolved}
-        onSortChange={setSort}
-        onCategoryChange={setCategory}
-        onHasSolutionsChange={setHasSolutions}
-        onUnsolvedChange={setUnsolved}
-      />
+      {/* Scoring explanation — transparent, not hidden */}
+      <div className="text-[11px] text-text-tertiary mb-4 font-mono">
+        Ranked by: upvotes + 3x &ldquo;would pay&rdquo; signals + 2x failed alternatives
+      </div>
 
       {loading ? (
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="bg-card-bg border border-border-warm rounded-2xl p-5 animate-pulse"
-            >
-              <div className="h-4 bg-border-warm rounded w-1/4 mb-3" />
-              <div className="h-6 bg-border-warm rounded w-3/4 mb-3" />
-              <div className="h-4 bg-border-warm rounded w-1/2" />
+        <div className="space-y-2">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="card px-4 py-3.5 flex items-center gap-4">
+              <div className="w-7 h-4 bg-bg-raised rounded animate-pulse" />
+              <div className="w-10 h-8 bg-bg-raised rounded animate-pulse" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-bg-raised rounded w-2/3 animate-pulse" />
+                <div className="h-3 bg-bg-raised rounded w-1/4 animate-pulse" />
+              </div>
             </div>
           ))}
         </div>
       ) : problems.length === 0 ? (
-        <div className="text-center py-16">
-          <h2 className="font-serif text-xl text-earth-mid mb-2">
-            No problems yet
-          </h2>
-          <p className="text-earth-muted mb-4">
-            Be the first to submit a problem the world needs solved.
+        <div className="text-center py-20">
+          <p className="text-text-secondary mb-1">Nothing here yet.</p>
+          <p className="text-sm text-text-tertiary mb-6">
+            Submit the first problem and let the market tell you if it matters.
           </p>
-          <a
-            href="/submit"
-            className="inline-block bg-green-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-green-light transition-colors"
-          >
-            Submit a Problem
-          </a>
+          <Link href="/submit" className="btn-primary">
+            Submit a problem
+          </Link>
         </div>
       ) : (
         <>
-          <div className="space-y-4">
-            {problems.map((problem) => (
-              <ProblemCard key={problem._id} problem={problem} />
+          <div className="space-y-1.5">
+            {problems.map((problem, i) => (
+              <ProblemCard
+                key={problem._id}
+                problem={problem}
+                rank={startRank + i + 1}
+              />
             ))}
           </div>
 
           {pagination && pagination.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-8">
+            <div className="flex items-center justify-center gap-4 mt-8">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 rounded-full text-sm bg-card-bg border border-border-warm text-earth-mid hover:border-green-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn-secondary text-xs disabled:opacity-30"
               >
-                Previous
+                Prev
               </button>
-              <span className="text-sm text-earth-muted">
-                Page {pagination.page} of {pagination.totalPages}
+              <span className="text-xs text-text-tertiary font-mono">
+                {pagination.page}/{pagination.totalPages}
               </span>
               <button
-                onClick={() =>
-                  setPage((p) => Math.min(pagination.totalPages, p + 1))
-                }
+                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={page === pagination.totalPages}
-                className="px-4 py-2 rounded-full text-sm bg-card-bg border border-border-warm text-earth-mid hover:border-green-primary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="btn-secondary text-xs disabled:opacity-30"
               >
                 Next
               </button>

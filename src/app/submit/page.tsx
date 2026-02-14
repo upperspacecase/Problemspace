@@ -4,28 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { CATEGORIES } from "@/lib/constants";
 
-const CATEGORIES = [
-  { value: "health", label: "Health" },
-  { value: "finance", label: "Finance" },
-  { value: "education", label: "Education" },
-  { value: "productivity", label: "Productivity" },
-  { value: "environment", label: "Environment" },
-  { value: "social", label: "Social" },
-  { value: "housing", label: "Housing" },
-  { value: "transport", label: "Transport" },
-  { value: "food", label: "Food" },
-  { value: "work", label: "Work" },
-  { value: "other", label: "Other" },
-];
-
-type SubmissionPath = "choose" | "free_form" | "jtbd";
+type Path = "choose" | "free_form" | "jtbd";
 
 export default function SubmitPage() {
   const router = useRouter();
   const { user, getToken } = useAuth();
 
-  const [path, setPath] = useState<SubmissionPath>("choose");
+  const [path, setPath] = useState<Path>("choose");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -34,22 +21,20 @@ export default function SubmitPage() {
   const [outcome, setOutcome] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [preview, setPreview] = useState(false);
 
-  function getJtbdDescription() {
-    return `When I'm in ${situation}, I want to ${motivation} so I can ${outcome}.`;
+  if (!user) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-text-secondary mb-4">Log in to submit a problem.</p>
+        <a href="/login" className="btn-primary">Log in</a>
+      </div>
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-
     setError("");
     setSubmitting(true);
-
     try {
       const token = await getToken();
       const body: Record<string, unknown> = {
@@ -57,188 +42,95 @@ export default function SubmitPage() {
         category,
         submissionMethod: path,
       };
-
       if (path === "jtbd") {
-        body.description = getJtbdDescription();
-        body.jtbd = {
-          situation: situation.trim(),
-          motivation: motivation.trim(),
-          outcome: outcome.trim(),
-        };
+        body.description = `When I'm in ${situation.trim()}, I want to ${motivation.trim()} so I can ${outcome.trim()}.`;
+        body.jtbd = { situation: situation.trim(), motivation: motivation.trim(), outcome: outcome.trim() };
       } else {
         body.description = description.trim();
       }
-
-      const result = await apiFetch("/api/problems", {
-        method: "POST",
-        token,
-        body: JSON.stringify(body),
-      });
-
+      const result = await apiFetch("/api/problems", { method: "POST", token, body: JSON.stringify(body) });
       router.push(`/problem/${result._id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit");
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
     setSubmitting(false);
   }
 
-  if (!user) {
-    return (
-      <div className="text-center py-16">
-        <h2 className="font-serif text-xl text-earth-mid mb-2">
-          Sign in to submit a problem
-        </h2>
-        <a
-          href="/login"
-          className="inline-block bg-green-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-green-light transition-colors"
-        >
-          Log in
-        </a>
-      </div>
-    );
-  }
-
-  // Path selection screen
+  // Step 1: Choose path
   if (path === "choose") {
     return (
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-serif text-earth-dark mb-2">
-          Submit a Problem
+      <div className="max-w-lg mx-auto">
+        <h1 className="text-2xl font-serif text-text-primary mb-1">
+          What&apos;s the problem?
         </h1>
-        <p className="text-earth-mid mb-8">
-          Choose how you want to describe your problem.
+        <p className="text-sm text-text-tertiary mb-8">
+          Describe a real problem. If others have it too, it&apos;ll rise.
         </p>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-3">
           <button
             onClick={() => setPath("free_form")}
-            className="bg-card-bg border border-border-warm rounded-2xl p-6 text-left hover:border-green-primary transition-colors group"
+            className="card w-full p-5 text-left hover:border-border-strong transition-colors group"
           >
-            <h3 className="font-serif text-lg text-earth-dark mb-2 group-hover:text-green-primary">
-              Free-form
-            </h3>
-            <p className="text-sm text-earth-mid">
-              Describe your problem in your own words. No structure required.
-              Quick and easy.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-text-primary group-hover:text-accent transition-colors">
+                  Just describe it
+                </p>
+                <p className="text-sm text-text-tertiary mt-0.5">
+                  Write it however you want. No structure needed.
+                </p>
+              </div>
+              <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
+            </div>
           </button>
 
           <button
             onClick={() => setPath("jtbd")}
-            className="bg-card-bg border border-border-warm rounded-2xl p-6 text-left hover:border-green-primary transition-colors group"
+            className="card w-full p-5 text-left hover:border-border-strong transition-colors group"
           >
-            <h3 className="font-serif text-lg text-earth-dark mb-2 group-hover:text-green-primary">
-              Guided (JTBD)
-            </h3>
-            <p className="text-sm text-earth-mid">
-              Walk through the Jobs to Be Done framework. Three guided steps for
-              a sharper problem definition.
-            </p>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Preview
-  if (preview) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-serif text-earth-dark mb-6">
-          Preview Your Problem
-        </h1>
-
-        <div className="bg-card-bg border border-border-warm rounded-2xl p-6 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-block bg-green-primary/10 text-green-primary text-xs font-medium px-3 py-1 rounded-full">
-              {CATEGORIES.find((c) => c.value === category)?.label || category}
-            </span>
-            <span className="inline-block bg-border-warm text-earth-muted text-xs px-3 py-1 rounded-full">
-              {path === "jtbd" ? "JTBD Guided" : "Free-form"}
-            </span>
-          </div>
-
-          <h2 className="font-serif text-xl text-earth-dark mb-3">{title}</h2>
-
-          {path === "jtbd" ? (
-            <div className="space-y-3">
-              <p className="text-earth-mid italic">{getJtbdDescription()}</p>
-              <div className="grid gap-3 sm:grid-cols-3 pt-2">
-                <div className="bg-white rounded-xl p-3">
-                  <p className="text-xs text-earth-muted mb-1">Situation</p>
-                  <p className="text-sm text-earth-dark">{situation}</p>
-                </div>
-                <div className="bg-white rounded-xl p-3">
-                  <p className="text-xs text-earth-muted mb-1">Motivation</p>
-                  <p className="text-sm text-earth-dark">{motivation}</p>
-                </div>
-                <div className="bg-white rounded-xl p-3">
-                  <p className="text-xs text-earth-muted mb-1">Outcome</p>
-                  <p className="text-sm text-earth-dark">{outcome}</p>
-                </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-text-primary group-hover:text-accent transition-colors">
+                  Use the JTBD framework
+                </p>
+                <p className="text-sm text-text-tertiary mt-0.5">
+                  Three fields: situation, motivation, outcome. Sharper definition.
+                </p>
               </div>
+              <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
             </div>
-          ) : (
-            <p className="text-earth-mid whitespace-pre-wrap">{description}</p>
-          )}
-        </div>
-
-        {error && (
-          <div className="bg-red-50 text-red-700 text-sm p-3 rounded-xl mb-4">
-            {error}
-          </div>
-        )}
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="bg-green-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-green-light transition-colors disabled:opacity-50"
-          >
-            {submitting ? "Submitting..." : "Submit Problem"}
-          </button>
-          <button
-            onClick={() => setPreview(false)}
-            className="text-sm text-earth-muted hover:text-earth-dark transition-colors"
-          >
-            Back to editing
           </button>
         </div>
       </div>
     );
   }
 
-  // Form
+  // Step 2: Form
+  const isValid = title && category && (path === "free_form" ? description : situation && motivation && outcome);
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-serif text-earth-dark">
-          {path === "jtbd" ? "Guided: Jobs to Be Done" : "Free-form Submission"}
+        <h1 className="text-2xl font-serif text-text-primary">
+          {path === "jtbd" ? "JTBD" : "Describe the problem"}
         </h1>
         <button
           onClick={() => setPath("choose")}
-          className="text-sm text-earth-muted hover:text-earth-dark transition-colors"
+          className="text-xs text-text-tertiary hover:text-text-secondary transition-colors font-mono"
         >
-          Change method
+          switch method
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 text-sm p-3 rounded-xl mb-4">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg mb-4">{error}</div>
       )}
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setPreview(true);
-        }}
-        className="space-y-5"
-      >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-earth-mid mb-1">
-            Title *
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
+            Title
           </label>
           <input
             type="text"
@@ -246,97 +138,77 @@ export default function SubmitPage() {
             onChange={(e) => setTitle(e.target.value)}
             required
             maxLength={120}
-            className="w-full bg-card-bg border border-border-warm rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-primary/30"
-            placeholder="A short, descriptive title for this problem"
+            className="input-base"
+            placeholder="What's the problem in one line?"
           />
-          <p className="text-xs text-earth-muted mt-1">
-            {title.length}/120 characters
-          </p>
+          <p className="text-[11px] text-text-tertiary mt-1 font-mono text-right">{title.length}/120</p>
         </div>
 
         {path === "jtbd" ? (
-          <>
-            <div className="bg-card-bg border border-border-warm rounded-2xl p-5">
-              <p className="text-sm text-earth-mid mb-4 italic">
-                &ldquo;When I&apos;m in [situation], I want to [motivation] so I
-                can [outcome].&rdquo;
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-earth-mid mb-1">
-                    Situation *
-                  </label>
-                  <input
-                    type="text"
-                    value={situation}
-                    onChange={(e) => setSituation(e.target.value)}
-                    required
-                    className="w-full bg-white border border-border-warm rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-primary/30"
-                    placeholder='e.g., "trying to track my daily spending across multiple accounts"'
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-earth-mid mb-1">
-                    Motivation *
-                  </label>
-                  <input
-                    type="text"
-                    value={motivation}
-                    onChange={(e) => setMotivation(e.target.value)}
-                    required
-                    className="w-full bg-white border border-border-warm rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-primary/30"
-                    placeholder='e.g., "see all my expenses in one place without manual entry"'
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-earth-mid mb-1">
-                    Outcome *
-                  </label>
-                  <input
-                    type="text"
-                    value={outcome}
-                    onChange={(e) => setOutcome(e.target.value)}
-                    required
-                    className="w-full bg-white border border-border-warm rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-primary/30"
-                    placeholder='e.g., "stick to my budget and save more each month"'
-                  />
-                </div>
-              </div>
+          <div className="card p-4 space-y-3">
+            <p className="text-xs text-text-tertiary italic">
+              &ldquo;When I&apos;m in ___, I want to ___ so I can ___.&rdquo;
+            </p>
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Situation</label>
+              <input
+                type="text"
+                value={situation}
+                onChange={(e) => setSituation(e.target.value)}
+                required
+                className="input-base"
+                placeholder='e.g., "managing a remote team across 4 time zones"'
+              />
             </div>
-          </>
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Motivation</label>
+              <input
+                type="text"
+                value={motivation}
+                onChange={(e) => setMotivation(e.target.value)}
+                required
+                className="input-base"
+                placeholder='e.g., "run async standups without scheduling headaches"'
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-secondary mb-1.5">Outcome</label>
+              <input
+                type="text"
+                value={outcome}
+                onChange={(e) => setOutcome(e.target.value)}
+                required
+                className="input-base"
+                placeholder='e.g., "keep everyone aligned without another meeting"'
+              />
+            </div>
+          </div>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-earth-mid mb-1">
-              Description *
-            </label>
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              rows={6}
-              className="w-full bg-card-bg border border-border-warm rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-primary/30 resize-none"
-              placeholder="Describe the problem in detail. What are you trying to do? What's getting in the way?"
+              rows={5}
+              className="input-base resize-none"
+              placeholder="What are you trying to do? What's not working? Be specific."
             />
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-earth-mid mb-2">
-            Category *
-          </label>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-xs font-medium text-text-secondary mb-2">Category</label>
+          <div className="flex flex-wrap gap-1.5">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
                 type="button"
                 onClick={() => setCategory(cat.value)}
-                className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   category === cat.value
-                    ? "bg-green-primary text-white"
-                    : "bg-card-bg border border-border-warm text-earth-mid hover:border-green-primary"
+                    ? "bg-accent text-white"
+                    : "bg-bg-raised text-text-secondary hover:bg-bg-hover"
                 }`}
               >
                 {cat.label}
@@ -345,15 +217,13 @@ export default function SubmitPage() {
           </div>
         </div>
 
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={!title || !category || (path === "free_form" ? !description : !situation || !motivation || !outcome)}
-            className="bg-green-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-green-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Preview
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={!isValid || submitting}
+          className="btn-primary w-full mt-2"
+        >
+          {submitting ? "Submitting..." : "Submit"}
+        </button>
       </form>
     </div>
   );
