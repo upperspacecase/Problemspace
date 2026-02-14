@@ -68,7 +68,6 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const sort = searchParams.get("sort") || "score";
   const category = searchParams.get("category");
-  const hasSolutions = searchParams.get("hasSolutions");
   const unsolved = searchParams.get("unsolved");
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 50);
@@ -80,10 +79,6 @@ export async function GET(request: NextRequest) {
     filter.category = category;
   }
 
-  if (hasSolutions === "true") {
-    filter.solutionCount = { $gt: 0 };
-  }
-
   if (unsolved === "true") {
     filter.hasSolvedSolution = false;
   }
@@ -93,9 +88,13 @@ export async function GET(request: NextRequest) {
     case "newest":
       sortQuery = { createdAt: -1 };
       break;
-    case "trending":
-      sortQuery = { createdAt: -1, compositeScore: -1 };
+    case "trending": {
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      filter.createdAt = { $gte: twoWeeksAgo };
+      sortQuery = { compositeScore: -1, createdAt: -1 };
       break;
+    }
     case "score":
     default:
       sortQuery = { compositeScore: -1, createdAt: -1 };

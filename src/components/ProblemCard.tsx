@@ -29,14 +29,12 @@ export default function ProblemCard({
   return (
     <Link href={`/problem/${problem._id}`} className="block group">
       <div className="card px-4 py-3.5 flex items-center gap-4 hover:border-border-strong transition-colors">
-        {/* Rank */}
         <div className="w-7 text-center flex-shrink-0">
           <span className="font-num text-sm text-text-tertiary">
             {rank}
           </span>
         </div>
 
-        {/* Upvote cluster */}
         <div className="flex flex-col items-center flex-shrink-0 w-10">
           <svg className="w-3.5 h-3.5 text-text-tertiary group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
@@ -46,7 +44,6 @@ export default function ProblemCard({
           </span>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <h3 className="text-[15px] font-medium text-text-primary group-hover:text-accent transition-colors leading-snug line-clamp-1">
             {problem.title}
@@ -68,11 +65,10 @@ export default function ProblemCard({
           </div>
         </div>
 
-        {/* Right meta */}
         <div className="flex items-center gap-2.5 flex-shrink-0">
           {problem.solutionCount > 0 && (
-            <span className="text-xs text-text-tertiary font-num">
-              {problem.solutionCount}s
+            <span className="text-xs text-text-tertiary font-num" title={`${problem.solutionCount} solution${problem.solutionCount !== 1 ? "s" : ""}`}>
+              {problem.solutionCount} sol
             </span>
           )}
           {problem.hasSolvedSolution ? (

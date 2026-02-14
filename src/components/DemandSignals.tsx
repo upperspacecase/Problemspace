@@ -31,7 +31,6 @@ export default function DemandSignals({
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -48,14 +47,12 @@ export default function DemandSignals({
     if (!user) { router.push("/login"); return; }
     if (loading) return;
     setLoading(true);
-    // Optimistic
     setHasUpvoted((v) => !v);
     setUpvoteCount((c) => hasUpvoted ? c - 1 : c + 1);
     try {
       const token = await getToken();
       await apiFetch(`/api/problems/${problemId}/upvote`, { method: "POST", token });
     } catch {
-      // Revert
       setHasUpvoted((v) => !v);
       setUpvoteCount((c) => hasUpvoted ? c + 1 : c - 1);
     }
@@ -67,7 +64,6 @@ export default function DemandSignals({
     if (loading) return;
     setLoading(true);
     setShowPriceRange(false);
-    // Optimistic
     const wasPaid = hasPaid;
     setHasPaid((v) => !v);
     setPaySignalCount((c) => wasPaid ? c - 1 : c + 1);
@@ -89,7 +85,6 @@ export default function DemandSignals({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Upvote */}
       <button
         onClick={handleUpvote}
         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all active:scale-[0.97] ${
@@ -104,7 +99,6 @@ export default function DemandSignals({
         <span className="font-num">{upvoteCount}</span>
       </button>
 
-      {/* Pay signal — the important one */}
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => {

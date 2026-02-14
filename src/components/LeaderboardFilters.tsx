@@ -27,7 +27,6 @@ export default function LeaderboardFilters({
 }: FiltersProps) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {/* Sort tabs */}
       <div className="flex items-center bg-bg-raised rounded-lg p-0.5">
         {SORT_OPTIONS.map((opt) => (
           <button
@@ -44,7 +43,6 @@ export default function LeaderboardFilters({
         ))}
       </div>
 
-      {/* Category */}
       <select
         value={category}
         onChange={(e) => onCategoryChange(e.target.value)}
@@ -58,7 +56,6 @@ export default function LeaderboardFilters({
         ))}
       </select>
 
-      {/* Open only toggle */}
       <button
         onClick={() => onUnsolvedChange(unsolved === "true" ? "" : "true")}
         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${

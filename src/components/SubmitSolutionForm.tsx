@@ -48,7 +48,7 @@ export default function SubmitSolutionForm({ problemId, onSubmitted, onCancel }:
   return (
     <div className="card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-text-primary">Attach a solution</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Add a solution</h3>
         <button onClick={onCancel} className="text-xs text-text-tertiary hover:text-text-secondary">
           Cancel
         </button>
@@ -110,7 +110,7 @@ export default function SubmitSolutionForm({ problemId, onSubmitted, onCancel }:
           onChange={(e) => setHowItAddresses(e.target.value)}
           rows={2}
           className="input-base resize-none"
-          placeholder="How does this address the problem? (optional)"
+          placeholder="How does it help? (optional)"
         />
 
         <button type="submit" disabled={submitting} className="btn-primary w-full">

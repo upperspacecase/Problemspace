@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
 import { authenticateRequest, isAuthError } from "@/lib/auth-middleware";
 import { ObjectId } from "mongodb";
-
-const VALID_PRICE_RANGES = ["<$10/mo", "$10-50/mo", "$50-200/mo", "$200+/mo"];
+import { PRICE_RANGES } from "@/lib/constants";
 
 export async function POST(
   request: NextRequest,
@@ -27,7 +26,7 @@ export async function POST(
 
   const body = await request.json().catch(() => ({}));
   const priceRange =
-    body.priceRange && VALID_PRICE_RANGES.includes(body.priceRange)
+    body.priceRange && (PRICE_RANGES as readonly string[]).includes(body.priceRange)
       ? body.priceRange
       : null;
 

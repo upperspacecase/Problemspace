@@ -68,7 +68,6 @@ export default function Home() {
 
   return (
     <div>
-      {/* Header — no tagline, just the filters */}
       <div className="flex items-end justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-serif text-text-primary">Problems</h1>
@@ -88,9 +87,8 @@ export default function Home() {
         />
       </div>
 
-      {/* Scoring explanation — transparent, not hidden */}
       <div className="text-[11px] text-text-tertiary mb-4 font-mono">
-        Ranked by: upvotes + 3x &ldquo;would pay&rdquo; signals + 2x failed alternatives
+        Ranked by: upvotes + 3x &ldquo;would pay&rdquo; + 2x failed alternatives
       </div>
 
       {loading ? (
@@ -110,7 +108,7 @@ export default function Home() {
         <div className="text-center py-20">
           <p className="text-text-secondary mb-1">Nothing here yet.</p>
           <p className="text-sm text-text-tertiary mb-6">
-            Submit the first problem and let the market tell you if it matters.
+            Be the first to post one.
           </p>
           <Link href="/submit" className="btn-primary">
             Submit a problem

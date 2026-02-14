@@ -27,7 +27,7 @@ export async function GET(
     problems
       .find({ userId })
       .sort({ createdAt: -1 })
-      .project({ title: 1, category: 1, compositeScore: 1, createdAt: 1 })
+      .project({ title: 1, category: 1, compositeScore: 1, upvoteCount: 1, createdAt: 1 })
       .toArray(),
     solutions
       .find({ userId })
@@ -36,9 +36,8 @@ export async function GET(
       .toArray(),
   ]);
 
-  // Calculate total upvotes received
   const totalProblemUpvotes = userProblems.reduce(
-    (sum, p) => sum + (p.compositeScore || 0),
+    (sum, p) => sum + (p.upvoteCount || 0),
     0
   );
   const totalSolutionUpvotes = userSolutions.reduce(

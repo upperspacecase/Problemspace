@@ -1,5 +1,3 @@
-// Helper for making authenticated API requests
-
 export async function apiFetch(
   url: string,
   options: RequestInit & { token?: string | null } = {}

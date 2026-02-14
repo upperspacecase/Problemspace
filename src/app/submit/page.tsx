@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { CATEGORIES } from "@/lib/constants";
@@ -26,7 +27,7 @@ export default function SubmitPage() {
     return (
       <div className="text-center py-20">
         <p className="text-text-secondary mb-4">Log in to submit a problem.</p>
-        <a href="/login" className="btn-primary">Log in</a>
+        <Link href="/login" className="btn-primary">Log in</Link>
       </div>
     );
   }
@@ -56,7 +57,6 @@ export default function SubmitPage() {
     setSubmitting(false);
   }
 
-  // Step 1: Choose path
   if (path === "choose") {
     return (
       <div className="max-w-lg mx-auto">
@@ -64,7 +64,7 @@ export default function SubmitPage() {
           What&apos;s the problem?
         </h1>
         <p className="text-sm text-text-tertiary mb-8">
-          Describe a real problem. If others have it too, it&apos;ll rise.
+          If others have the same problem, it&apos;ll rise.
         </p>
 
         <div className="space-y-3">
@@ -95,7 +95,7 @@ export default function SubmitPage() {
                   Use the JTBD framework
                 </p>
                 <p className="text-sm text-text-tertiary mt-0.5">
-                  Three fields: situation, motivation, outcome. Sharper definition.
+                  Three fields: situation, motivation, outcome.
                 </p>
               </div>
               <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
@@ -106,7 +106,6 @@ export default function SubmitPage() {
     );
   }
 
-  // Step 2: Form
   const isValid = title && category && (path === "free_form" ? description : situation && motivation && outcome);
 
   return (

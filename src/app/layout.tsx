@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 export const metadata: Metadata = {
   title: "Problem Board",
   description:
-    "Problems ranked by willingness to pay. Find what to build next.",
+    "Problems people would pay to solve, ranked by demand.",
 };
 
 export default function RootLayout({

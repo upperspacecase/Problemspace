@@ -74,7 +74,6 @@ export default function UserProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-xl font-serif text-text-primary">{profile.displayName}</h1>
         <div className="flex items-center gap-4 mt-2 text-xs text-text-tertiary font-mono">
@@ -85,7 +84,6 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Problems */}
       {problems.length > 0 && (
         <section className="mb-8">
           <h2 className="text-sm font-semibold text-text-primary mb-3">Problems</h2>
@@ -111,7 +109,6 @@ export default function UserProfilePage() {
         </section>
       )}
 
-      {/* Solutions */}
       {solutions.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold text-text-primary mb-3">Solutions</h2>

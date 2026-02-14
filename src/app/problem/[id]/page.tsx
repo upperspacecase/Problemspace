@@ -126,7 +126,6 @@ export default function ProblemDetailPage() {
         &larr; board
       </Link>
 
-      {/* Problem */}
       <article className="mb-8">
         <div className="flex items-center gap-2 mb-3 text-xs text-text-tertiary">
           <span>{CATEGORY_MAP[problem.category] || problem.category}</span>
@@ -167,7 +166,6 @@ export default function ProblemDetailPage() {
           </p>
         )}
 
-        {/* Demand signals */}
         <div className="flex items-center justify-between flex-wrap gap-3 py-4 border-t border-b border-border">
           <DemandSignals
             problemId={problem._id}
@@ -182,7 +180,6 @@ export default function ProblemDetailPage() {
         </div>
       </article>
 
-      {/* Alternatives */}
       {(alternatives.length > 0 || user) && (
         <section className="mb-8">
           <h2 className="text-sm font-semibold text-text-primary mb-3">
@@ -212,7 +209,6 @@ export default function ProblemDetailPage() {
         </section>
       )}
 
-      {/* Solutions */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-text-primary">
