@@ -15,8 +15,8 @@ html {
 
 body {
   font-family: "DM Sans", system-ui, sans-serif;
-  background-color: #FAFAF8;
-  color: #1A1A18;
+  background-color: #0B1120;
+  color: #F1F5F9;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -29,7 +29,7 @@ h1, h2, h3 {
 
 @layer components {
   .input-base {
-    @apply w-full bg-bg border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary
+    @apply w-full bg-bg-raised border border-border rounded-lg px-3.5 py-2.5 text-sm text-text-primary
     placeholder:text-text-tertiary
     focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent
     transition-colors;
@@ -43,14 +43,14 @@ h1, h2, h3 {
   }
 
   .btn-secondary {
-    @apply bg-bg border border-border px-4 py-2 rounded-lg text-sm font-medium text-text-secondary
+    @apply bg-bg-raised border border-border px-4 py-2 rounded-lg text-sm font-medium text-text-secondary
     hover:bg-bg-hover hover:text-text-primary hover:border-border-strong
     active:scale-[0.98]
     transition-all;
   }
 
   .card {
-    @apply bg-white border border-border rounded-xl;
+    @apply bg-bg-card border border-border rounded-xl;
   }
 }
 

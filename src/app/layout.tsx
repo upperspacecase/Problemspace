@@ -4,9 +4,9 @@ import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Problem Board",
+  title: "ProblemBoard",
   description:
-    "Problems people would pay to solve, ranked by demand.",
+    "Find the world's real problems. Build impactful solutions.",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-bg text-text-primary font-sans">
         <AuthProvider>
           <Navbar />
-          <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
             {children}
           </main>
         </AuthProvider>
