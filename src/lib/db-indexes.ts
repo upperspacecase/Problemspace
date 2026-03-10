@@ -11,6 +11,7 @@ export async function ensureIndexes() {
   await db.collection("problems").createIndex({ category: 1, compositeScore: -1 });
   await db.collection("problems").createIndex({ createdAt: -1 });
   await db.collection("problems").createIndex({ userId: 1 });
+  await db.collection("problems").createIndex({ submitterType: 1, compositeScore: -1 });
 
   // problemUpvotes
   await db

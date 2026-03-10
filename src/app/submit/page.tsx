@@ -20,6 +20,7 @@ export default function SubmitPage() {
   const [situation, setSituation] = useState("");
   const [motivation, setMotivation] = useState("");
   const [outcome, setOutcome] = useState("");
+  const [submitterType, setSubmitterType] = useState("individual");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,6 +43,7 @@ export default function SubmitPage() {
         title: title.trim(),
         category,
         submissionMethod: path,
+        submitterType,
       };
       if (path === "jtbd") {
         body.description = `When I'm in ${situation.trim()}, I want to ${motivation.trim()} so I can ${outcome.trim()}.`;
@@ -123,7 +125,7 @@ export default function SubmitPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg mb-4">{error}</div>
+        <div className="bg-red-500/10 text-red-400 text-xs p-3 rounded-lg mb-4">{error}</div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -211,6 +213,30 @@ export default function SubmitPage() {
                 }`}
               >
                 {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-2">Submitted as</label>
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { value: "individual", label: "Individual" },
+              { value: "business", label: "Business" },
+              { value: "community", label: "Community" },
+            ].map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setSubmitterType(t.value)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  submitterType === t.value
+                    ? "bg-accent text-white"
+                    : "bg-bg-raised text-text-secondary hover:bg-bg-hover"
+                }`}
+              >
+                {t.label}
               </button>
             ))}
           </div>

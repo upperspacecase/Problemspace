@@ -45,6 +45,8 @@ export default function Home() {
     params.set("limit", "30");
     if (category) params.set("category", category);
     if (status === "unsolved") params.set("unsolved", "true");
+    if (status === "solved") params.set("solved", "true");
+    if (submitter) params.set("submitterType", submitter);
     if (search) params.set("search", search);
 
     try {
@@ -56,7 +58,7 @@ export default function Home() {
       console.error("Failed to fetch problems:", err);
     }
     setLoading(false);
-  }, [category, status, search, page]);
+  }, [category, status, submitter, search, page]);
 
   useEffect(() => {
     fetchProblems();
@@ -64,7 +66,7 @@ export default function Home() {
 
   useEffect(() => {
     setPage(1);
-  }, [category, status, search]);
+  }, [category, status, submitter, search]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

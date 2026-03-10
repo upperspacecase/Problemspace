@@ -123,7 +123,7 @@ export default function DemandSignals({
         </button>
 
         {showPriceRange && (
-          <div className="absolute top-full left-0 mt-1.5 bg-white border border-border rounded-xl shadow-lg p-2 z-20 min-w-[200px]">
+          <div className="absolute top-full left-0 mt-1.5 bg-bg-raised border border-border-strong rounded-xl shadow-lg p-2 z-20 min-w-[200px]">
             <p className="text-[11px] text-text-tertiary px-2 pt-1 pb-2">
               What would you pay?
             </p>

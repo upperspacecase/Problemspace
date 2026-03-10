@@ -55,7 +55,7 @@ export default function SubmitSolutionForm({ problemId, onSubmitted, onCancel }:
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 text-xs p-2.5 rounded-lg mb-3">
+        <div className="bg-red-500/10 text-red-400 text-xs p-2.5 rounded-lg mb-3">
           {error}
         </div>
       )}

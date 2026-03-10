@@ -3,12 +3,14 @@ import { getCollection } from "@/lib/mongodb";
 import { authenticateRequest, isAuthError } from "@/lib/auth-middleware";
 import { VALID_CATEGORIES } from "@/lib/constants";
 
+const VALID_SUBMITTER_TYPES = ["business", "community", "individual"];
+
 export async function POST(request: NextRequest) {
   const authResult = await authenticateRequest(request);
   if (isAuthError(authResult)) return authResult;
 
   const body = await request.json();
-  const { title, description, category, submissionMethod, jtbd } = body;
+  const { title, description, category, submissionMethod, jtbd, submitterType } = body;
 
   if (!title || !description || !category) {
     return NextResponse.json(
@@ -40,6 +42,7 @@ export async function POST(request: NextRequest) {
     description: description.trim(),
     category,
     submissionMethod: method,
+    submitterType: VALID_SUBMITTER_TYPES.includes(submitterType) ? submitterType : "individual",
     jtbd: method === "jtbd" ? {
       situation: jtbd?.situation?.trim() || null,
       motivation: jtbd?.motivation?.trim() || null,
@@ -69,6 +72,9 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get("sort") || "score";
   const category = searchParams.get("category");
   const unsolved = searchParams.get("unsolved");
+  const solved = searchParams.get("solved");
+  const search = searchParams.get("search");
+  const submitterType = searchParams.get("submitterType");
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 50);
   const skip = (page - 1) * limit;
@@ -81,6 +87,22 @@ export async function GET(request: NextRequest) {
 
   if (unsolved === "true") {
     filter.hasSolvedSolution = false;
+  }
+
+  if (solved === "true") {
+    filter.hasSolvedSolution = true;
+  }
+
+  if (submitterType && VALID_SUBMITTER_TYPES.includes(submitterType)) {
+    filter.submitterType = submitterType;
+  }
+
+  if (search && search.trim()) {
+    const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter.$or = [
+      { title: { $regex: escaped, $options: "i" } },
+      { description: { $regex: escaped, $options: "i" } },
+    ];
   }
 
   let sortQuery: Record<string, 1 | -1>;

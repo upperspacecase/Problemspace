@@ -24,10 +24,10 @@ interface Props {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  idea: "text-stage-idea bg-gray-100",
-  prototype: "text-stage-prototype bg-amber-50",
-  live: "text-stage-live bg-emerald-50",
-  mature: "text-stage-mature bg-purple-50",
+  idea: "text-stage-idea bg-gray-500/10",
+  prototype: "text-stage-prototype bg-amber-500/10",
+  live: "text-stage-live bg-emerald-500/10",
+  mature: "text-stage-mature bg-purple-500/10",
 };
 
 export default function SolutionCard({

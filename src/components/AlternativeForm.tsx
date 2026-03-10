@@ -61,7 +61,7 @@ export default function AlternativeForm({ problemId, onSubmitted }: Props) {
   return (
     <form onSubmit={handleSubmit} className="card p-4 space-y-2.5">
       {error && (
-        <div className="bg-red-50 text-red-700 text-xs p-2.5 rounded-lg">{error}</div>
+        <div className="bg-red-500/10 text-red-400 text-xs p-2.5 rounded-lg">{error}</div>
       )}
       <input
         type="text"
