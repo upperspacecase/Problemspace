@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { MagneticButton } from "@/components/ui/magnetic-button";
@@ -23,8 +23,12 @@ function VerifyContent() {
   const { refreshUser } = useAuth();
   const [error, setError] = useState("");
   const [verifying, setVerifying] = useState(true);
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
     const token = searchParams.get("token");
 
     if (!token) {
