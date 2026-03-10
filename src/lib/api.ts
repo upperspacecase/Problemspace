@@ -1,19 +1,13 @@
 export async function apiFetch(
   url: string,
-  options: RequestInit & { token?: string | null } = {}
+  options: RequestInit = {}
 ) {
-  const { token, ...fetchOptions } = options;
-
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(fetchOptions.headers as Record<string, string>),
+    ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(url, { ...fetchOptions, headers });
+  const res = await fetch(url, { ...options, headers, credentials: "same-origin" });
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: "Request failed" }));

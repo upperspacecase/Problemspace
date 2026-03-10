@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminAuth } from "./firebase-admin";
+import { jwtVerify } from "jose";
 import { getCollection } from "./mongodb";
 import { ObjectId } from "mongodb";
 
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "problemspace-dev-secret-change-in-prod"
+);
+
+const COOKIE_NAME = "pb_session";
+
 export interface AuthenticatedUser {
   _id: ObjectId;
-  firebaseUid: string;
   displayName: string;
   email: string;
 }
@@ -13,18 +18,18 @@ export interface AuthenticatedUser {
 export async function authenticateRequest(
   request: NextRequest
 ): Promise<AuthenticatedUser | NextResponse> {
-  const authHeader = request.headers.get("Authorization");
+  const token = request.cookies.get(COOKIE_NAME)?.value;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const token = authHeader.split("Bearer ")[1];
-
   try {
-    const decodedToken = await getAdminAuth().verifyIdToken(token);
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = payload.userId as string;
+
     const users = await getCollection("users");
-    const user = await users.findOne({ firebaseUid: decodedToken.uid });
+    const user = await users.findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
@@ -32,7 +37,6 @@ export async function authenticateRequest(
 
     return {
       _id: user._id as ObjectId,
-      firebaseUid: user.firebaseUid,
       displayName: user.displayName,
       email: user.email,
     };

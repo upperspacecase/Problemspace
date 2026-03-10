@@ -6,12 +6,13 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { CATEGORIES } from "@/lib/constants";
+import { MagneticButton } from "@/components/ui/magnetic-button";
 
 type Path = "choose" | "free_form" | "jtbd";
 
 export default function SubmitPage() {
   const router = useRouter();
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
 
   const [path, setPath] = useState<Path>("choose");
   const [title, setTitle] = useState("");
@@ -28,7 +29,9 @@ export default function SubmitPage() {
     return (
       <div className="text-center py-20">
         <p className="text-text-secondary mb-4">Log in to submit a problem.</p>
-        <Link href="/login" className="btn-primary">Log in</Link>
+        <MagneticButton>
+          <Link href="/login" className="btn-primary inline-block">Log in</Link>
+        </MagneticButton>
       </div>
     );
   }
@@ -38,7 +41,6 @@ export default function SubmitPage() {
     setError("");
     setSubmitting(true);
     try {
-      const token = await getToken();
       const body: Record<string, unknown> = {
         title: title.trim(),
         category,
@@ -51,7 +53,7 @@ export default function SubmitPage() {
       } else {
         body.description = description.trim();
       }
-      const result = await apiFetch("/api/problems", { method: "POST", token, body: JSON.stringify(body) });
+      const result = await apiFetch("/api/problems", { method: "POST", body: JSON.stringify(body) });
       router.push(`/problem/${result._id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -70,39 +72,43 @@ export default function SubmitPage() {
         </p>
 
         <div className="space-y-3">
-          <button
-            onClick={() => setPath("free_form")}
-            className="card w-full p-5 text-left hover:border-border-strong transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-text-primary group-hover:text-accent transition-colors">
-                  Just describe it
-                </p>
-                <p className="text-sm text-text-tertiary mt-0.5">
-                  Write it however you want. No structure needed.
-                </p>
+          <MagneticButton distance={0.3}>
+            <button
+              onClick={() => setPath("free_form")}
+              className="card w-full p-5 text-left hover:border-border-strong transition-colors group cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-text-primary group-hover:text-accent transition-colors">
+                    Just describe it
+                  </p>
+                  <p className="text-sm text-text-tertiary mt-0.5">
+                    Write it however you want. No structure needed.
+                  </p>
+                </div>
+                <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
               </div>
-              <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
-            </div>
-          </button>
+            </button>
+          </MagneticButton>
 
-          <button
-            onClick={() => setPath("jtbd")}
-            className="card w-full p-5 text-left hover:border-border-strong transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-text-primary group-hover:text-accent transition-colors">
-                  Use the JTBD framework
-                </p>
-                <p className="text-sm text-text-tertiary mt-0.5">
-                  Three fields: situation, motivation, outcome.
-                </p>
+          <MagneticButton distance={0.3}>
+            <button
+              onClick={() => setPath("jtbd")}
+              className="card w-full p-5 text-left hover:border-border-strong transition-colors group cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-text-primary group-hover:text-accent transition-colors">
+                    Use the JTBD framework
+                  </p>
+                  <p className="text-sm text-text-tertiary mt-0.5">
+                    Three fields: situation, motivation, outcome.
+                  </p>
+                </div>
+                <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
               </div>
-              <span className="text-text-tertiary group-hover:text-accent transition-colors">&rarr;</span>
-            </div>
-          </button>
+            </button>
+          </MagneticButton>
         </div>
       </div>
     );
@@ -133,15 +139,17 @@ export default function SubmitPage() {
           <label className="block text-xs font-medium text-text-secondary mb-1.5">
             Title
           </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            maxLength={120}
-            className="input-base"
-            placeholder="What's the problem in one line?"
-          />
+          <MagneticButton distance={0.15}>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              maxLength={120}
+              className="input-base"
+              placeholder="What's the problem in one line?"
+            />
+          </MagneticButton>
           <p className="text-[11px] text-text-tertiary mt-1 font-mono text-right">{title.length}/120</p>
         </div>
 
@@ -152,49 +160,57 @@ export default function SubmitPage() {
             </p>
             <div>
               <label className="block text-xs font-medium text-text-secondary mb-1.5">Situation</label>
-              <input
-                type="text"
-                value={situation}
-                onChange={(e) => setSituation(e.target.value)}
-                required
-                className="input-base"
-                placeholder='e.g., "managing a remote team across 4 time zones"'
-              />
+              <MagneticButton distance={0.15}>
+                <input
+                  type="text"
+                  value={situation}
+                  onChange={(e) => setSituation(e.target.value)}
+                  required
+                  className="input-base"
+                  placeholder='e.g., "managing a remote team across 4 time zones"'
+                />
+              </MagneticButton>
             </div>
             <div>
               <label className="block text-xs font-medium text-text-secondary mb-1.5">Motivation</label>
-              <input
-                type="text"
-                value={motivation}
-                onChange={(e) => setMotivation(e.target.value)}
-                required
-                className="input-base"
-                placeholder='e.g., "run async standups without scheduling headaches"'
-              />
+              <MagneticButton distance={0.15}>
+                <input
+                  type="text"
+                  value={motivation}
+                  onChange={(e) => setMotivation(e.target.value)}
+                  required
+                  className="input-base"
+                  placeholder='e.g., "run async standups without scheduling headaches"'
+                />
+              </MagneticButton>
             </div>
             <div>
               <label className="block text-xs font-medium text-text-secondary mb-1.5">Outcome</label>
-              <input
-                type="text"
-                value={outcome}
-                onChange={(e) => setOutcome(e.target.value)}
-                required
-                className="input-base"
-                placeholder='e.g., "keep everyone aligned without another meeting"'
-              />
+              <MagneticButton distance={0.15}>
+                <input
+                  type="text"
+                  value={outcome}
+                  onChange={(e) => setOutcome(e.target.value)}
+                  required
+                  className="input-base"
+                  placeholder='e.g., "keep everyone aligned without another meeting"'
+                />
+              </MagneticButton>
             </div>
           </div>
         ) : (
           <div>
             <label className="block text-xs font-medium text-text-secondary mb-1.5">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={5}
-              className="input-base resize-none"
-              placeholder="What are you trying to do? What's not working? Be specific."
-            />
+            <MagneticButton distance={0.15}>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                rows={5}
+                className="input-base resize-none"
+                placeholder="What are you trying to do? What's not working? Be specific."
+              />
+            </MagneticButton>
           </div>
         )}
 
@@ -242,13 +258,15 @@ export default function SubmitPage() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={!isValid || submitting}
-          className="btn-primary w-full mt-2"
-        >
-          {submitting ? "Submitting..." : "Submit"}
-        </button>
+        <MagneticButton distance={0.3}>
+          <button
+            type="submit"
+            disabled={!isValid || submitting}
+            className="btn-primary w-full mt-2"
+          >
+            {submitting ? "Submitting..." : "Submit"}
+          </button>
+        </MagneticButton>
       </form>
     </div>
   );

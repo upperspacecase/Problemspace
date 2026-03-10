@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function AlternativeForm({ problemId, onSubmitted }: Props) {
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [alternativeName, setAlternativeName] = useState("");
   const [whyItFails, setWhyItFails] = useState("");
@@ -25,10 +25,8 @@ export default function AlternativeForm({ problemId, onSubmitted }: Props) {
     setError("");
     setSubmitting(true);
     try {
-      const token = await getToken();
       await apiFetch(`/api/problems/${problemId}/alternative`, {
         method: "POST",
-        token,
         body: JSON.stringify({
           alternativeName: alternativeName.trim(),
           whyItFails: whyItFails.trim(),

@@ -35,7 +35,7 @@ export default function SolutionCard({
   problemUserId,
   initialUpvoted = false,
 }: Props) {
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [upvoteCount, setUpvoteCount] = useState(solution.upvoteCount);
   const [hasUpvoted, setHasUpvoted] = useState(initialUpvoted);
@@ -52,8 +52,7 @@ export default function SolutionCard({
     setHasUpvoted(!was);
     setUpvoteCount((c) => was ? c - 1 : c + 1);
     try {
-      const token = await getToken();
-      await apiFetch(`/api/solutions/${solution._id}/upvote`, { method: "POST", token });
+      await apiFetch(`/api/solutions/${solution._id}/upvote`, { method: "POST" });
     } catch {
       setHasUpvoted(was);
       setUpvoteCount((c) => was ? c + 1 : c - 1);
@@ -65,8 +64,7 @@ export default function SolutionCard({
     if (!user || !isOwner || loading) return;
     setLoading(true);
     try {
-      const token = await getToken();
-      const res = await apiFetch(`/api/solutions/${solution._id}/mark-solved`, { method: "POST", token });
+      const res = await apiFetch(`/api/solutions/${solution._id}/mark-solved`, { method: "POST" });
       setIsSolved(res.action === "marked_solved");
     } catch { /* noop */ }
     setLoading(false);

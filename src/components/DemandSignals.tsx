@@ -21,7 +21,7 @@ export default function DemandSignals({
   initialUpvoted = false,
   initialPaid = false,
 }: Props) {
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [upvoteCount, setUpvoteCount] = useState(initialUpvotes);
   const [paySignalCount, setPaySignalCount] = useState(initialPaySignals);
@@ -50,8 +50,7 @@ export default function DemandSignals({
     setHasUpvoted((v) => !v);
     setUpvoteCount((c) => hasUpvoted ? c - 1 : c + 1);
     try {
-      const token = await getToken();
-      await apiFetch(`/api/problems/${problemId}/upvote`, { method: "POST", token });
+      await apiFetch(`/api/problems/${problemId}/upvote`, { method: "POST" });
     } catch {
       setHasUpvoted((v) => !v);
       setUpvoteCount((c) => hasUpvoted ? c + 1 : c - 1);
@@ -68,12 +67,10 @@ export default function DemandSignals({
     setHasPaid((v) => !v);
     setPaySignalCount((c) => wasPaid ? c - 1 : c + 1);
     try {
-      const token = await getToken();
       const body: Record<string, string> = {};
       if (priceRange) body.priceRange = priceRange;
       await apiFetch(`/api/problems/${problemId}/pay-signal`, {
         method: "POST",
-        token,
         body: JSON.stringify(body),
       });
     } catch {

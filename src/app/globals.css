@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 * {
   -webkit-font-smoothing: antialiased;
@@ -15,16 +15,16 @@ html {
 
 body {
   font-family: "DM Sans", system-ui, sans-serif;
-  background-color: #0B1120;
+  background-color: #020617;
   color: #F1F5F9;
   font-size: 15px;
   line-height: 1.6;
 }
 
 h1, h2, h3 {
-  font-family: "DM Serif Display", serif;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 @layer components {
@@ -50,11 +50,60 @@ h1, h2, h3 {
   }
 
   .card {
-    @apply bg-bg-card border border-border rounded-xl;
+    @apply bg-bg-card border border-border rounded-xl transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply bg-bg-card border border-border rounded-xl transition-all duration-200
+    hover:border-border-strong hover:shadow-lg hover:shadow-accent/5 cursor-pointer;
   }
 }
 
 .font-num {
   font-family: "JetBrains Mono", "Fira Code", monospace;
   font-variant-numeric: tabular-nums;
+}
+
+/* Subtle glow for accent elements */
+.glow-accent {
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.15), 0 0 60px rgba(129, 140, 248, 0.05);
+}
+
+/* Animated gradient for hero */
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #818CF8, #C084FC, #818CF8);
+  background-size: 200% 200%;
+  animation: shimmer 6s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Pulse for live indicators */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Hide Spline watermark */
+[data-spline-watermark],
+a[href*="spline.design"] {
+  display: none !important;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .text-gradient { animation: none; }
+  .pulse-dot { animation: none; }
+  * { transition-duration: 0ms !important; }
 }

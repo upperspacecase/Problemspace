@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { STAGES } from "@/lib/constants";
 
@@ -12,7 +11,6 @@ interface Props {
 }
 
 export default function SubmitSolutionForm({ problemId, onSubmitted, onCancel }: Props) {
-  const { getToken } = useAuth();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
@@ -26,10 +24,8 @@ export default function SubmitSolutionForm({ problemId, onSubmitted, onCancel }:
     setError("");
     setSubmitting(true);
     try {
-      const token = await getToken();
       await apiFetch(`/api/problems/${problemId}/solutions`, {
         method: "POST",
-        token,
         body: JSON.stringify({
           name: name.trim(),
           description: description.trim(),

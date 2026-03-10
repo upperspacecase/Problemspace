@@ -4,7 +4,7 @@ export async function ensureIndexes() {
   const db = await getDb();
 
   // users
-  await db.collection("users").createIndex({ firebaseUid: 1 }, { unique: true });
+  await db.collection("users").createIndex({ email: 1 }, { unique: true });
 
   // problems
   await db.collection("problems").createIndex({ compositeScore: -1 });
