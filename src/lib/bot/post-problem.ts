@@ -1,4 +1,5 @@
 import { getCollection } from "../mongodb";
+import { sendDailyDigestEmail } from "../resend";
 import { RankedProblem } from "./problem-ranker";
 
 const BOT_USER_ID = "reddit-problem-bot";
@@ -76,5 +77,40 @@ export async function postProblemToBoard(ranked: RankedProblem) {
   };
 
   const result = await problems.insertOne(problem);
+
+  // Send daily digest to paid users (fire-and-forget)
+  sendDigestToSubscribers(ranked, result.insertedId.toString()).catch(
+    (err) => console.error("[Bot] Digest emails failed:", err)
+  );
+
   return { duplicate: false, problemId: result.insertedId, problem };
+}
+
+async function sendDigestToSubscribers(
+  ranked: RankedProblem,
+  problemId: string
+) {
+  const users = await getCollection("users");
+  const subscribers = await users
+    .find({ plan: { $in: ["pro", "team"] } })
+    .toArray();
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://problemboard.app";
+
+  for (const user of subscribers) {
+    if (!user.email) continue;
+    try {
+      await sendDailyDigestEmail(user.email, user.displayName || "there", {
+        title: ranked.title,
+        description: ranked.description,
+        category: ranked.category,
+        wouldPayScore: ranked.wouldPayScore,
+        funToBuildScore: ranked.funToBuildScore,
+        redditUrl: ranked.redditPost.permalink,
+        problemUrl: `${appUrl}/problem/${problemId}`,
+      });
+    } catch (err) {
+      console.error(`[Bot] Digest email to ${user.email} failed:`, err);
+    }
+  }
 }

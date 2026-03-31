@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminAuth } from "@/lib/firebase-admin";
 import { getCollection } from "@/lib/mongodb";
+import { sendWelcomeEmail } from "@/lib/resend";
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("Authorization");
@@ -34,6 +35,15 @@ export async function POST(request: NextRequest) {
       },
       { upsert: true, returnDocument: "after" }
     );
+
+    // Send welcome email to new users (fire-and-forget)
+    const isNewUser = result?.createdAt &&
+      new Date().getTime() - new Date(result.createdAt).getTime() < 10000;
+    if (isNewUser && result?.email) {
+      sendWelcomeEmail(result.email, result.displayName || "there").catch(
+        (err) => console.error("[Auth] Welcome email failed:", err)
+      );
+    }
 
     return NextResponse.json({ user: result });
   } catch {

@@ -19,6 +19,12 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <Link
+            href="/pricing"
+            className="text-sm text-text-secondary hover:text-text-primary transition-colors px-2 hidden sm:inline"
+          >
+            Pricing
+          </Link>
           {loading ? (
             <div className="w-20 h-8 rounded-lg bg-bg-raised animate-pulse" />
           ) : user ? (
