@@ -1,0 +1,34 @@
+name: Reddit Problem Finder Bot
+
+on:
+  schedule:
+    # Run daily at 2pm UTC
+    - cron: "0 14 * * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  find-problem:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Trigger Reddit Problem Bot
+        env:
+          DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+          BOT_SECRET: ${{ secrets.BOT_SECRET }}
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${DEPLOY_URL}/api/bot/reddit-problems" \
+            -H "Authorization: Bearer ${BOT_SECRET}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Status: $http_code"
+          echo "Response: $body"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::Bot API returned $http_code"
+            exit 1
+          fi
