@@ -1,16 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getCollection } from "@/lib/mongodb";
 import { SEED_PROBLEMS } from "@/lib/bot/seed-problems";
 
-export async function POST(request: NextRequest) {
-  // Verify secret to prevent unauthorized seeding
-  const authHeader = request.headers.get("authorization");
-  const botSecret = process.env.BOT_SECRET;
-
-  if (!botSecret || authHeader !== `Bearer ${botSecret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+// GET so you can just visit /api/seed in the browser to populate the board
+export async function GET() {
   const problems = await getCollection("problems");
   const users = await getCollection("users");
 
