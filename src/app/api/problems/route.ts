@@ -4,8 +4,16 @@ import { authenticateRequest, isAuthError } from "@/lib/auth-middleware";
 import { VALID_CATEGORIES } from "@/lib/constants";
 
 export async function POST(request: NextRequest) {
-  const authResult = await authenticateRequest(request);
-  if (isAuthError(authResult)) return authResult;
+  // Auth is optional -- logged-in users get their userId attached,
+  // anonymous submissions get userId: null.
+  let userId = null;
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader) {
+    const authResult = await authenticateRequest(request);
+    if (!isAuthError(authResult)) {
+      userId = authResult._id;
+    }
+  }
 
   const body = await request.json();
   const { title, description, category, submissionMethod, jtbd } = body;
@@ -35,7 +43,7 @@ export async function POST(request: NextRequest) {
   const completenessBonus = method === "jtbd" ? 5 : 0;
 
   const problem = {
-    userId: authResult._id,
+    userId,
     title: title.trim(),
     description: description.trim(),
     category,
