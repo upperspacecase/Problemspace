@@ -6,8 +6,16 @@ import { VALID_CATEGORIES } from "@/lib/constants";
 const VALID_SUBMITTER_TYPES = ["business", "community", "individual"];
 
 export async function POST(request: NextRequest) {
-  const authResult = await authenticateRequest(request);
-  if (isAuthError(authResult)) return authResult;
+  // Auth is optional -- logged-in users get their userId attached,
+  // anonymous submissions get userId: null.
+  let userId = null;
+  const token = request.cookies.get("pb_session")?.value;
+  if (token) {
+    const authResult = await authenticateRequest(request);
+    if (!isAuthError(authResult)) {
+      userId = authResult._id;
+    }
+  }
 
   const body = await request.json();
   const { title, description, category, submissionMethod, jtbd, submitterType } = body;
@@ -37,7 +45,7 @@ export async function POST(request: NextRequest) {
   const completenessBonus = method === "jtbd" ? 5 : 0;
 
   const problem = {
-    userId: authResult._id,
+    userId,
     title: title.trim(),
     description: description.trim(),
     category,
